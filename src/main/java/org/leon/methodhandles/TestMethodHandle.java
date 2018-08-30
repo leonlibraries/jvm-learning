@@ -28,21 +28,28 @@ public class TestMethodHandle
     MethodType methodType = MethodType.methodType(String.class, Father.class);
     MethodHandle methodHandle = lookup.findVirtual(Father.class, "echo", methodType);
 
+    // 以下第一个参数均为对象实例，通过句柄调用实例方法
     // 执行 invoke 自动匹配，参数可以 Father 子类实例 (模拟 多态)
     String returnValue1 = (String) methodHandle.invoke(new Child1(), new Father());
     String returnValue2 = (String) methodHandle.invoke(new Child2(), new Father());
+    String returnValue3 = (String) methodHandle.invoke(new Child1(), new Child2());
     // 执行 invokeExact 精确匹配 new Father 只能是Father实例，不能是其子类实例
-    String returnValue3 = (String) methodHandle.invokeExact(new Father(), new Father());
+    String returnValue4 = (String) methodHandle.invokeExact(new Father(), new Father());
 
     // 多态结果
-    System.out.println("The return value is " + returnValue1);
-    System.out.println("The return value is " + returnValue2);
-    System.out.println("The return value is " + returnValue3);
+    System.out.println("The return value 1 is " + returnValue1);
+    System.out.println("The return value 2 is " + returnValue2);
+    System.out.println("The return value 3 is " + returnValue3);
+    System.out.println("The return value 4 is " + returnValue4);
     /*
       方法句柄增删改参数操作
      */
-    // invoke 会调用 asType 方法，生成一个适配句柄， 对传入参数进行适配
-
+    // 模拟 invoke 的实现，实质上是利用 asType 生成匹配句柄
+    // 同理，首参依旧是对象实例，通过句柄调用该实例的方法
+    String returnValue5 = (String) methodHandle
+        .asType(MethodType.methodType(String.class, Child1.class, Father.class))
+        .invokeExact(new Child1(), new Father());
+    System.out.println("The return value 5 is " + returnValue5);
   }
 
   public int getFactor()
