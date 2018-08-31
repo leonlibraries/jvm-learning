@@ -8,6 +8,7 @@ import org.junit.Test;
 
 public class TestMethodHandle
 {
+
   /**
    * 1.利用方法句柄实现多态调用
    */
@@ -58,10 +59,23 @@ public class TestMethodHandle
 
     Child1 obj = new Child1();
 
-    String returnValue = (String) methodHandle.asType(MethodType.methodType(String.class,Child1.class,Child2.class)).invokeExact(obj,new Child2());
+    String returnValue = (String) methodHandle
+        .asType(MethodType.methodType(String.class, Child1.class, Child2.class))
+        .invokeExact(obj, new Child2());
 
     Assert.assertEquals("Child1 :: invoke", returnValue);
   }
+
+  @Test
+  public void invokeStackTrace() throws Throwable
+  {
+    MethodHandles.Lookup lookup = MethodHandles.lookup();
+    // 寻找 Father 类中的 echo 方法，并传入相应的方法描述符
+    MethodHandle methodHandle = lookup.findVirtual(PrintStackTrace.class, "print",
+        MethodType.methodType(void.class));
+    methodHandle.invokeExact(new PrintStackTrace());
+  }
+
 }
 
 class Child1 extends Father
@@ -116,5 +130,17 @@ class Father
   }
 }
 
+
+/**
+ * 通过抛异常的方式打印方法栈
+ */
+class PrintStackTrace
+{
+
+  public void print()
+  {
+    new Exception().printStackTrace();
+  }
+}
 
 
