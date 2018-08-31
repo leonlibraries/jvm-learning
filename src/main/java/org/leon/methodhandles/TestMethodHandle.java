@@ -3,63 +3,64 @@ package org.leon.methodhandles;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import org.junit.Assert;
+import org.junit.Test;
 
 public class TestMethodHandle
 {
-
-  private int factor = 100;
-
-
-  public static void main(String[] args) throws Throwable
+  /**
+   * 1.利用方法句柄实现多态调用
+   */
+  @Test
+  public void polymorphicInvoke() throws Throwable
   {
-    /*
-      create a Lookup （method handle 的工厂)
-     */
-    // provides access to public methods
-    MethodHandles.Lookup publicLookup = MethodHandles.publicLookup();
-    // provides access to all methods
     MethodHandles.Lookup lookup = MethodHandles.lookup();
+    // 寻找 Father 类中的 echo 方法，并传入相应的方法描述符
+    MethodHandle methodHandle = lookup.findVirtual(Father.class, "echo",
+        MethodType.methodType(String.class, Father.class));
 
-    /*
-      create a MethodType (代表期望的参数类型以及返回值类型)
+    Father obj = new Child1();
 
-      方法签名包括：方法名 和 参数，不包括返回值，是Java语义上的，对于重载有意义
-     */
-    MethodType methodType = MethodType.methodType(String.class, Father.class);
-    MethodHandle methodHandle = lookup.findVirtual(Father.class, "echo", methodType);
+    String returnValue = (String) methodHandle.invoke(obj, new Child2());
 
-    // 以下第一个参数均为对象实例，通过句柄调用实例方法
-    // 执行 invoke 自动匹配，参数可以 Father 子类实例 (模拟 多态)
-    String returnValue1 = (String) methodHandle.invoke(new Child1(), new Father());
-    String returnValue2 = (String) methodHandle.invoke(new Child2(), new Father());
-    String returnValue3 = (String) methodHandle.invoke(new Child1(), new Child2());
-    // 执行 invokeExact 精确匹配 new Father 只能是Father实例，不能是其子类实例
-    String returnValue4 = (String) methodHandle.invokeExact(new Father(), new Father());
-
-    // 多态结果
-    System.out.println("The return value 1 is " + returnValue1);
-    System.out.println("The return value 2 is " + returnValue2);
-    System.out.println("The return value 3 is " + returnValue3);
-    System.out.println("The return value 4 is " + returnValue4);
-    /*
-      方法句柄增删改参数操作
-     */
-    // 模拟 invoke 的实现，实质上是利用 asType 生成匹配句柄
-    // 同理，首参依旧是对象实例，通过句柄调用该实例的方法
-    String returnValue5 = (String) methodHandle
-        .asType(MethodType.methodType(String.class, Child1.class, Father.class))
-        .invokeExact(new Child1(), new Father());
-    System.out.println("The return value 5 is " + returnValue5);
+    Assert.assertEquals("Child1 :: invoke", returnValue);
   }
 
-  public int getFactor()
+  /**
+   * 2.利用 invokeExact 精确匹配参数调用
+   */
+  @Test
+  public void exactlyInvoke() throws Throwable
   {
-    return factor;
+    MethodHandles.Lookup lookup = MethodHandles.lookup();
+    // 寻找 Father 类中的 echo 方法，并传入相应的方法描述符
+    MethodHandle methodHandle = lookup.findVirtual(Father.class, "echo",
+        MethodType.methodType(String.class, Father.class));
+
+    // 这样实例化相当于把 Child1 强转成 Father，因此也是符合 Exact 要求，如果不强转，执行invokeExact会抛错
+    Father obj = new Child1();
+
+    String returnValue = (String) methodHandle.invokeExact(obj, new Father());
+
+    Assert.assertEquals("Child1 :: invoke", returnValue);
   }
 
-  public void setFactor(int factor)
+  /**
+   * 3.变更参数类型，以适应 Exact 要求 （模拟 invoke 的自动适配原理）
+   */
+  @Test
+  public void alterMethodType() throws Throwable
   {
-    this.factor = factor;
+    MethodHandles.Lookup lookup = MethodHandles.lookup();
+    // 寻找 Father 类中的 echo 方法，并传入相应的方法描述符
+    MethodHandle methodHandle = lookup.findVirtual(Father.class, "echo",
+        MethodType.methodType(String.class, Father.class));
+
+    Child1 obj = new Child1();
+
+    String returnValue = (String) methodHandle.asType(MethodType.methodType(String.class,Child1.class,Child2.class)).invokeExact(obj,new Child2());
+
+    Assert.assertEquals("Child1 :: invoke", returnValue);
   }
 }
 
@@ -114,3 +115,6 @@ class Father
     return "Father :: invoke";
   }
 }
+
+
+
