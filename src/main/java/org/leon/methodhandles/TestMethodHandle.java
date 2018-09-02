@@ -66,6 +66,9 @@ public class TestMethodHandle
     Assert.assertEquals("Child1 :: invoke", returnValue);
   }
 
+  /**
+   * 4.打印调用栈轨迹
+   */
   @Test
   public void invokeStackTrace() throws Throwable
   {
@@ -74,6 +77,26 @@ public class TestMethodHandle
     MethodHandle methodHandle = lookup.findVirtual(PrintStackTrace.class, "print",
         MethodType.methodType(void.class));
     methodHandle.invokeExact(new PrintStackTrace());
+  }
+
+  /**
+   * 5.实现动态调用 (failed)
+   */
+  @Test
+  public void invokeDynamic() throws Throwable
+  {
+    MethodHandles.Lookup lookup = MethodHandles.lookup();
+    MethodHandle methodHandle = lookup.findVirtual(Father.class, "echo",
+        MethodType.methodType(String.class, Father.class));
+
+    //改变调用者身份为 Friend
+    Friend f = new Friend();
+
+    String returnValue = (String) methodHandle
+        .asType(MethodType.methodType(String.class, Friend.class, Child2.class))
+        .invokeExact(f, new Child2());
+
+    Assert.assertEquals("Friend :: invoke", returnValue);
   }
 
 }
@@ -130,6 +153,19 @@ class Father
   }
 }
 
+/**
+ * 毫无血缘关系的动态调用
+ */
+class Friend
+{
+
+  public String echo(Father obj)
+  {
+    System.out.println("====" + obj + "====");
+    obj.print();
+    return "Friend :: invoke";
+  }
+}
 
 /**
  * 通过抛异常的方式打印方法栈
