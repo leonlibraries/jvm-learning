@@ -26,7 +26,7 @@ import org.objectweb.asm.commons.Method;
 public class ReflectTest implements Opcodes
 {
 
-  private static final int ITER = 1000000000;
+  private static final int ITER = Integer.MAX_VALUE;
 
   public static class TestClassLoader extends ClassLoader
   {
@@ -79,7 +79,7 @@ public class ReflectTest implements Opcodes
     for (int i = 0; i < ITER; i++) {
       indyRunnable.run();
     }
-    System.out.println(" invokeDynamic/ms: " + ITER / (System.currentTimeMillis() - start));
+    System.out.println(" invokeDynamic/ms: " + (System.currentTimeMillis() - start));
   }
 
   private static void testInnerClass(Runnable runnable)
@@ -88,7 +88,7 @@ public class ReflectTest implements Opcodes
     for (int i1 = 0; i1 < ITER; i1++) {
       runnable.run();
     }
-    System.out.println(" testInnerClass/ms: " + ITER / (System.currentTimeMillis() - start));
+    System.out.println(" testInnerClass/ms: " + (System.currentTimeMillis() - start));
   }
 
   private static void testSharedRunnable(Runnable runnable)
@@ -97,7 +97,7 @@ public class ReflectTest implements Opcodes
     for (int i = 0; i < ITER; i++) {
       runnable.run();
     }
-    System.out.println(" sharedInvokeDynamic/ms " + runnable.getClass().getName() + ": " + ITER / (
+    System.out.println(" sharedInvokeDynamic/ms " + runnable.getClass().getName() + ": " + (
         System.currentTimeMillis() - start));
   }
 
@@ -112,13 +112,14 @@ public class ReflectTest implements Opcodes
     for (int i = 0; i < ITER; i++) {
       reflectTest.print();
     }
-    System.out.println(" direct/ms: " + ITER / (System.currentTimeMillis() - start));
+    System.out.println(" direct/ms: " + (System.currentTimeMillis() - start));
   }
 
   private static Constructor<?> createClass() throws Exception
   {
     TestClassLoader LOADER = new TestClassLoader();
-    Class<?> aClass = LOADER.defineClass("org.leon.methodhandles.invokedynamic.IndyRunnable", createBytes());
+    Class<?> aClass = LOADER
+        .defineClass("org.leon.methodhandles.invokedynamic.IndyRunnable", createBytes());
     return aClass.getConstructor(ReflectTest.class);
   }
 
@@ -134,17 +135,21 @@ public class ReflectTest implements Opcodes
     FieldVisitor fv;
     MethodVisitor mv;
 
-    cw.visit(V1_7, ACC_PUBLIC + ACC_SUPER, "org/leon/methodhandles/invokedynamic/IndyRunnable", null, "java/lang/Object",
+    cw.visit(V1_7, ACC_PUBLIC + ACC_SUPER, "org/leon/methodhandles/invokedynamic/IndyRunnable",
+        null, "java/lang/Object",
         new String[]{"java/lang/Runnable"});
 
     cw.visitSource("IndyRunnable.java", null);
 
     {
-      fv = cw.visitField(ACC_PRIVATE, "rt", "Lorg/leon/methodhandles/invokedynamic/ReflectTest;", null, null);
+      fv = cw
+          .visitField(ACC_PRIVATE, "rt", "Lorg/leon/methodhandles/invokedynamic/ReflectTest;", null,
+              null);
       fv.visitEnd();
     }
     {
-      mv = cw.visitMethod(ACC_PUBLIC, "<init>", "(Lorg/leon/methodhandles/invokedynamic/ReflectTest;)V", null, null);
+      mv = cw.visitMethod(ACC_PUBLIC, "<init>",
+          "(Lorg/leon/methodhandles/invokedynamic/ReflectTest;)V", null, null);
       mv.visitCode();
       Label l0 = new Label();
       mv.visitLabel(l0);
@@ -156,15 +161,18 @@ public class ReflectTest implements Opcodes
       mv.visitLineNumber(8, l1);
       mv.visitVarInsn(ALOAD, 0);
       mv.visitVarInsn(ALOAD, 1);
-      mv.visitFieldInsn(PUTFIELD, "org/leon/methodhandles/invokedynamic/IndyRunnable", "rt", "Lorg/leon/methodhandles/invokedynamic/ReflectTest;");
+      mv.visitFieldInsn(PUTFIELD, "org/leon/methodhandles/invokedynamic/IndyRunnable", "rt",
+          "Lorg/leon/methodhandles/invokedynamic/ReflectTest;");
       Label l2 = new Label();
       mv.visitLabel(l2);
       mv.visitLineNumber(9, l2);
       mv.visitInsn(RETURN);
       Label l3 = new Label();
       mv.visitLabel(l3);
-      mv.visitLocalVariable("this", "Lorg/leon/methodhandles/invokedynamic/IndyRunnable;", null, l0, l3, 0);
-      mv.visitLocalVariable("rt", "Lorg/leon/methodhandles/invokedynamic/ReflectTest;", null, l0, l3, 1);
+      mv.visitLocalVariable("this", "Lorg/leon/methodhandles/invokedynamic/IndyRunnable;", null, l0,
+          l3, 0);
+      mv.visitLocalVariable("rt", "Lorg/leon/methodhandles/invokedynamic/ReflectTest;", null, l0,
+          l3, 1);
       mv.visitMaxs(2, 2);
       mv.visitEnd();
     }
@@ -172,8 +180,10 @@ public class ReflectTest implements Opcodes
       GeneratorAdapter ga = new GeneratorAdapter(ACC_PUBLIC, Method.getMethod("void run ()"), null,
           null, cw);
       ga.loadThis();
-      ga.getField(Type.getType("org/leon/methodhandles/invokedynamic/IndyRunnable"), "rt", Type.getType(ReflectTest.class));
-      ga.invokeDynamic("print", "(Lorg/leon/methodhandles/invokedynamic/ReflectTest;)V", BOOTSTRAP_METHOD);
+      ga.getField(Type.getType("org/leon/methodhandles/invokedynamic/IndyRunnable"), "rt",
+          Type.getType(ReflectTest.class));
+      ga.invokeDynamic("print", "(Lorg/leon/methodhandles/invokedynamic/ReflectTest;)V",
+          BOOTSTRAP_METHOD);
       ga.returnValue();
       ga.endMethod();
     }
