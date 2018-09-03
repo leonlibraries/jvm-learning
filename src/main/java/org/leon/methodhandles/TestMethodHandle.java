@@ -2,6 +2,7 @@ package org.leon.methodhandles;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
 import org.junit.Assert;
 import org.junit.Test;
@@ -80,25 +81,38 @@ public class TestMethodHandle
   }
 
   /**
-   * 5.实现动态调用 (failed)
+   * 5.实现 invokespecial 调用父类方法
    */
   @Test
-  public void invokeDynamic() throws Throwable
+  public void invokeSpecial() throws Throwable
   {
-    MethodHandles.Lookup lookup = MethodHandles.lookup();
-    MethodHandle methodHandle = lookup.findVirtual(Father.class, "echo",
-        MethodType.methodType(String.class, Father.class));
+    MethodHandles.Lookup cLkp = Child1.getLookup();
+    MethodHandle mh0 = cLkp
+        .findSpecial(GrandFather.class, "print", MethodType.methodType(void.class), Child1.class);
+    // print 'Im Father'
+    mh0.invoke(new Child1());
+    // print 'Im GrandFather'
+    MethodHandles.Lookup gfLkp = GrandFather.getLookup();
+    MethodHandle mh1 = gfLkp
+        .findSpecial(GrandFather.class, "print", MethodType.methodType(void.class),
+            GrandFather.class);
+    mh1.invoke(new Child1());
+  }
+}
 
-    //改变调用者身份为 Friend
-    Friend f = new Friend();
+class GrandFather
+{
 
-    String returnValue = (String) methodHandle
-        .asType(MethodType.methodType(String.class, Friend.class, Child2.class))
-        .invokeExact(f, new Child2());
-
-    Assert.assertEquals("Friend :: invoke", returnValue);
+  public void print()
+  {
+    System.out.println("Im GrandFather");
   }
 
+  // 从 Child1 中获取访问权限，才能调用 invokespecial
+  static Lookup getLookup()
+  {
+    return MethodHandles.lookup();
+  }
 }
 
 class Child1 extends Father
@@ -116,6 +130,12 @@ class Child1 extends Father
     System.out.println("====" + obj + "====");
     obj.print();
     return "Child1 :: invoke";
+  }
+
+  // 从 Child1 中获取访问权限，才能调用 invokespecial
+  static Lookup getLookup()
+  {
+    return MethodHandles.lookup();
   }
 }
 
@@ -137,9 +157,10 @@ class Child2 extends Father
   }
 }
 
-class Father
+class Father extends GrandFather
 {
 
+  @Override
   public void print()
   {
     System.out.println("Im Father");
