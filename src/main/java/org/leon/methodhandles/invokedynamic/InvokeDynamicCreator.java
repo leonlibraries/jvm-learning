@@ -14,6 +14,7 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.ConstantCallSite;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -69,7 +70,7 @@ public class InvokeDynamicCreator
         "org/leon/methodhandles/invokedynamic/InvokeDynamicCreator", bsmName,
         mt.toMethodDescriptorString());
 
-    mv.visitInvokeDynamicInsn("runDynamic", targetMethodDescriptor, bootstrap);
+    mv.visitInvokeDynamicInsn("targetMethod", targetMethodDescriptor, bootstrap);
     mv.visitInsn(RETURN);
     mv.visitMaxs(0, 1);
     mv.visitEnd();
@@ -84,15 +85,25 @@ public class InvokeDynamicCreator
     System.out.println("Hello World!");
   }
 
+
+  /**
+   * 启动方法
+   *
+   * @param caller 忽略
+   * @param name 目标方法名
+   * @param callSiteType 调用点类型
+   * @throws NoSuchMethodException 无此方法
+   * @throws IllegalAccessException 无权访问
+   */
   public static CallSite bootstrap(
       MethodHandles.Lookup caller, String name, MethodType callSiteType)
       throws NoSuchMethodException, IllegalAccessException
   {
-    final MethodHandles.Lookup lookup = MethodHandles.lookup();
     // target method 是静态的，因此需要用 lookupClass()
+    Lookup lookup = MethodHandles.lookup();
     final Class currentClass = lookup.lookupClass();
     final MethodType targetSignature = MethodType.methodType(void.class);
-    final MethodHandle targetMH = lookup.findStatic(currentClass, "targetMethod", targetSignature);
+    final MethodHandle targetMH = lookup.findStatic(currentClass, name, targetSignature);
     return new ConstantCallSite(targetMH.asType(callSiteType));
   }
 }
