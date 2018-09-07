@@ -21,6 +21,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 
+/**
+ * invoke Dynamic 调用示例
+ */
 public class InvokeDynamicCreator
 {
 
@@ -35,7 +38,7 @@ public class InvokeDynamicCreator
   }
 
   /**
-   * 生成类字节码
+   * 生成 Dynamic 类字节码
    *
    * @param outputClassName 类文件路径+名称
    * @param bsmName 启动方法名称
@@ -67,7 +70,7 @@ public class InvokeDynamicCreator
         .methodType(CallSite.class, MethodHandles.Lookup.class, String.class, MethodType.class);
     // 持有 bootstrap 方法的句柄
     Handle bootstrap = new Handle(Opcodes.H_INVOKESTATIC,
-        "org/leon/methodhandles/invokedynamic/InvokeDynamicCreator", bsmName,
+        "org/leon/methodhandles/invokedynamic/InlineCache", bsmName,
         mt.toMethodDescriptorString());
 
     mv.visitInvokeDynamicInsn("targetMethod", targetMethodDescriptor, bootstrap);
