@@ -146,7 +146,7 @@ public class InlineCache
   {
     InlineCache inlineCache = new InlineCache(caller, name);
     MethodHandle mh = caller
-        .findVirtual(InlineCache.class, "invoke", MethodType.methodType(void.class, Object.class));
+        .findVirtual(InlineCache.class, "invoke", callSiteType);
     return new ConstantCallSite(mh.bindTo(inlineCache));
   }
 }
