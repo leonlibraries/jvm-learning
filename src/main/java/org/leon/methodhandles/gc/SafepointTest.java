@@ -11,10 +11,12 @@ package org.leon.methodhandles.gc;
 public class SafepointTest
 {
 
-  static double sum = 0;
+
 
   public static void foo()
   {
+    double sum = 0;
+
     long start = System.currentTimeMillis();
     for (int i = 0; i < 0x77777777; i++) {
       sum += Math.sqrt(i);
