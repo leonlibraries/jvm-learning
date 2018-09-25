@@ -98,6 +98,10 @@ public class TestMethodHandle
             GrandFather.class);
     mh1.invoke(new Child1());
   }
+
+  public static void main(String[] args){
+    System.out.println("sadasda");
+  }
 }
 
 class GrandFather
