@@ -27,21 +27,18 @@ import org.objectweb.asm.Opcodes;
 /**
  * 支持动态调用的内联缓存（简单实现）
  */
-public class InlineCache
+public class InvokeDynamicGenerator
 {
 
   private final MethodHandles.Lookup lookup;
 
   private final String name;
 
-  public InlineCache(Lookup lookup, String name)
+  public InvokeDynamicGenerator(Lookup lookup, String name)
   {
     this.lookup = lookup;
     this.name = name;
   }
-
-  private Class<?> cachedClass = null;
-  private MethodHandle cacheMH = null;
 
 
   /**
@@ -78,7 +75,7 @@ public class InlineCache
         .methodType(CallSite.class, MethodHandles.Lookup.class, String.class, MethodType.class);
     // 持有 bootstrap 方法的句柄
     Handle bootstrapMH = new Handle(Opcodes.H_INVOKESTATIC,
-        "org/leon/methodhandles/invokedynamic/InlineCache", bsmName,
+        "org/leon/methodhandles/invokedynamic/InvokeDynamicGenerator", bsmName,
         mt.toMethodDescriptorString());
 
     // 调用 Horse 目标 race 方法 （需要传递 Horse 对象实例）
@@ -113,7 +110,7 @@ public class InlineCache
 
   public static void main(String[] args) throws Exception
   {
-    final String outputClassName = "org/leon/methodhandles/invokedynamic/InlineCacheDynamic";
+    final String outputClassName = "org/leon/methodhandles/invokedynamic/DynamicInvoker";
     try (FileOutputStream fos = new FileOutputStream(
         new File("target/classes/" + outputClassName + ".class")
     )) {
@@ -144,9 +141,9 @@ public class InlineCache
       MethodHandles.Lookup caller, String name, MethodType callSiteType
   ) throws NoSuchMethodException, IllegalAccessException
   {
-    InlineCache inlineCache = new InlineCache(caller, name);
+    InvokeDynamicGenerator generator = new InvokeDynamicGenerator(caller, name);
     MethodHandle mh = caller
-        .findVirtual(InlineCache.class, "invoke", callSiteType);
-    return new ConstantCallSite(mh.bindTo(inlineCache));
+        .findVirtual(InvokeDynamicGenerator.class, "invoke", callSiteType);
+    return new ConstantCallSite(mh.bindTo(generator));
   }
 }
