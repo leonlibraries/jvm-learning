@@ -47,7 +47,7 @@ public class DeoptimizedForCL
     System.out.println("Loading Sub");
     Sub[] array = new Sub[0]; // Load class Sub
     // Expect output: "org.leon.jit.DeoptimizedForCL::test (7 bytes)   made not entrant"
-    // 意思是内联后的test方法，不允许之后的caller访问
+    // 意思是内联后的test方法，不允许之后的caller访问,原因就是 Sub类加载进来，原先基于类层次分析完全去虚化站不住脚，不允许访问原先即时编译的结果
     Thread.sleep(2000);
   }
 }
