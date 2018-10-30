@@ -20,6 +20,7 @@ public class CheckGetterProcessor extends AbstractProcessor
   public boolean process(
       Set<? extends TypeElement> annotations, RoundEnvironment roundEnv)
   {
+    System.out.println(annotations.toString());
     // TODO: annotated ElementKind.FIELD
     // 通过 roundEnv.getElementsAnnotatedWith(CheckSetter.class)) 获取CheckSetter 注解的类或者字段
     for (TypeElement annotatedClass : ElementFilter

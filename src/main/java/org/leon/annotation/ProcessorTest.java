@@ -3,13 +3,15 @@ package org.leon.annotation;
 @CheckSetter
 public class ProcessorTest
 {
+  @CheckSetter
   int a;
 
   static int b;
 
-  public ProcessorTest setA(int a)
+  ProcessorTest(){}
+
+  void setA(int a)
   {
     this.a = a;
-    return this;
   }
 }
